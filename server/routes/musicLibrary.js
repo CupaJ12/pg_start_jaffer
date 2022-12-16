@@ -1,26 +1,5 @@
 const express = require('express');
 const router = express.Router();
-const pg = require('pg');
-
-const Pool = pg.Pool;
-
-const pool = new Pool({
-    database: 'lydian_intro',
-    host: 'localhost',
-    port: 5432,
-    max: 10,
-    idleTimeoutMillis: 30000,
-
-});
-
-pool.on('connect', () => {
-    console.log('postgres connected');
-
-});
-
-pool.on('error', (error) => {
-    console.log('postgres error', error);
-});
 
 router.get('/', (req, res) => {
     let queryText = 'select * from songs;';
@@ -38,9 +17,12 @@ router.post('/', (req, res) => {
     const newsong = req.body;
     const queryText = `
     INSERT INTO "SONGS" ("rank", "artist", "track", "published")
-    VALUES(${newsong.rank}, ${newsong.artist}, ${newsong.track}, ${newsong.published})
+    VALUES($1, $2, $3, $4)
     `;
-    pool.query(queryText)
+    pool.query(queryText, [newsong.rank, 
+        newsong.artist, 
+        newsong.track, 
+        newsong.published])
     .then((result) => {
         console.log('result', result);
         res.sendStatus(201);
